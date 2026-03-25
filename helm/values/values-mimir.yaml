@@ -1,0 +1,28 @@
+
+alertmanager:
+  enabled: false
+
+ingester:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+  resources:
+    requests:
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+
+rollout_operator:
+  enabled: false
+
+store_gateway:
+  zoneAwareReplication:
+    enabled: false
+
+distributor:
+  resources:
+    requests:
+      memory: 128Mi
+    limits:
+      memory: 1Gi
+  

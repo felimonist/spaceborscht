@@ -11,7 +11,7 @@ datasources:
         uid: metrics
         type: prometheus
         access: proxy
-        url: http://kube-prometheus-stack-prometheus.practice-3-2.svc.cluster.local:9090
+        url: http://kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090
         basicAuth: false
         isDefault: true
         editable: false
@@ -20,7 +20,7 @@ datasources:
         uid: logs
         type: loki
         access: proxy
-        url: http://loki.practice-3-1.svc.cluster.local:3100
+        url: http://loki.loki.svc.cluster.local:3100
         basicAuth: false
         isDefault: false
         editable: false
@@ -33,7 +33,7 @@ datasources:
         uid: traces
         type: tempo
         access: proxy
-        url: http://tempo-query-frontend-discovery.practice-3-4.svc.cluster.local:3200
+        url: http://tempo-query-frontend-discovery.tempo.svc.cluster.local:3200
         basicAuth: false
         isDefault: false
         editable: false
