@@ -1,0 +1,55 @@
+mode: "daemonset"
+image:
+  repository: "otel/opentelemetry-collector-k8s"
+
+presets:
+  kubernetesAttributes:
+    enabled: true
+  kubernetesEvents:
+    enabled: true
+  logsCollection:
+    enabled: true
+    includeCollectorLogs: true
+
+config:
+  exporters:
+    otlphttp/logs:
+      endpoint: http://loki-gateway.loki.svc.cluster.local/otlp # Обратите внимание, что мы указали тут эндпоинт Loki
+      tls:
+        insecure: true
+      headers:
+        "X-Scope-OrgID": "otel"
+  extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+  processors:
+    batch: {}
+    memory_limiter:
+      check_interval: 5s
+      limit_percentage: 80
+      spike_limit_percentage: 25
+
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  service:
+    extensions:
+      - health_check
+    pipelines:
+      logs:
+        exporters:
+          - otlphttp/logs
+        processors:
+          - memory_limiter
+          - batch
+        receivers:
+          - otlp
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 512Mi
