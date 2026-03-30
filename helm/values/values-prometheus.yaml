@@ -1,4 +1,95 @@
-alertmanager:
-  enabled: false
-grafana:
-  enabled: false
+prometheus:
+  enabled: true
+  namespace: prometheus
+
+  server:
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_config:
+      # Сбор метрик с Loki
+      - job_name: 'loki-metrics'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - loki
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: loki.*
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: kubernetes_pod
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: instance
+
+      # Сбор метрик с Tempo
+      - job_name: 'tempo-metrics'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - tempo
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: tempo.*
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: kubernetes_pod
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: instance
+
+      # Сбор метрик из прикладного namespace (приложения с логами)
+      - job_name: 'spaceborscht'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - spaceborscht
+        relabel_configs:
+          # Оставляем только поды с аннотацией prometheus.io/scrape: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          # Указываем путь к метрикам, если он отличается от /metrics
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          # Формируем адрес для сбора метрик
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          # Добавляем метки namespace и pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: kubernetes_pod
+
+  rbac:
+    create: true
+    pspEnabled: false
+
+  serviceAccount:
+    create: true
+    name: prometheus-serviceaccount
+
+  configmapReload:
+    prometheus:
+      name: prometheus-server
+      enabled: true
+
+  kubeStateMetrics:
+    enabled: true
+
+  alertmanager:
+    enabled: false
+  grafana:
+    enabled: false
