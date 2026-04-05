@@ -1,16 +1,3 @@
-dashboardProviders:
-  dashboardproviders.yaml:
-    apiVersion: 1
-    providers:
-      - name: loki
-        orgId: 1
-        folder: "practice"
-        type: file
-        disableDeletion: false
-        allowUiUpdates: false # Этот параметр защищает дашборд от удаления через интерфейс Grafana.
-        options:
-          path: /var/lib/grafana/dashboards/default
-
 dashboards:
   loki:
     dashboard-loki:

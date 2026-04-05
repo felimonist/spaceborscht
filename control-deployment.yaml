@@ -6,7 +6,7 @@ metadata:
   labels:
     app: control
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: control
@@ -33,7 +33,7 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: "spaceborscht-control"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://otel-collector:4318/v1/traces"
+          value: "http://tempo-distributor.tempo.svc.cluster.local:4318/v1/traces"
         - name: ENGINE_URL
           value: "http://engine-service:3001"
         - name: TELEMETRY_URL
@@ -86,3 +86,17 @@ spec:
       port: 3000
       targetPort: 3000
   type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: control-exporter-podmonitor
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: control
+  podMetricsEndpoints:
+    - port: metrics-port
+      interval: 15s

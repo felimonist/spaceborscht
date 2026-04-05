@@ -6,7 +6,7 @@ metadata:
   labels:
     app: telemetry
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: telemetry
@@ -33,7 +33,7 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: "spaceborscht-telemetry"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://otel-collector:4318/v1/traces"
+          value: "http://tempo-distributor.tempo.svc.cluster.local:4318/v1/traces"
         - name: ERROR_RATE_DEFAULT
           value: "0.1"
         livenessProbe:
@@ -74,3 +74,17 @@ spec:
       port: 3002
       targetPort: 3002
   type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: telemetry-exporter-podmonitor
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: telemetry
+  podMetricsEndpoints:
+    - port: metrics-port
+      interval: 15s

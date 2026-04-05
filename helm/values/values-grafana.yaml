@@ -37,3 +37,32 @@ datasources:
         basicAuth: false
         isDefault: false
         editable: false
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: lesson
+        orgId: 1
+        folder: "lesson"
+        type: file
+        disableDeletion: false
+        allowUiUpdates: false
+        options:
+          path: /var/lib/grafana/dashboards/lesson
+      - name: loki
+        orgId: 1
+        folder: "practice"
+        type: file
+        disableDeletion: true
+        allowUiUpdates: true 
+        options:
+          path: /var/lib/grafana/dashboards/loki
+      - name: tempo
+        orgId: 1
+        folder: "tempo"
+        type: file
+        disableDeletion: false
+        allowUiUpdates: false 
+        options:
+          path: /var/lib/grafana/dashboards/tempo

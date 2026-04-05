@@ -1,0 +1,74 @@
+prometheus:
+  enabled: true
+  namespace: prometheus
+
+  server:
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+
+  prometheusSpec:
+    ignoreNamespaceSelectors: false
+
+  podMonitor:
+    comms:
+      enabled: true
+      namespace: "spaceborscht"
+      selector:
+        matchLabels:
+          app: comms
+      podMetricsEndpoints:
+        - port: metrics-port
+          path: /metrics
+          interval: 15s
+    control:
+      enabled: true
+      namespace: "spaceborscht"
+      selector:
+        matchLabels:
+          app: control
+      podMetricsEndpoints:
+        - port: metrics-port
+          path: /metrics
+          interval: 15s
+    engine:
+      enabled: true
+      namespace: "spaceborscht"
+      selector:
+        matchLabels:
+          app: engine
+      podMetricsEndpoints:
+        - port: metrics-port
+          path: /metrics
+          interval: 15s
+    telemetry:
+      enabled: true
+      namespace: "spaceborscht"
+      selector:
+        matchLabels:
+          app: telemetry
+      podMetricsEndpoints:
+        - port: metrics-port
+          path: /metrics
+          interval: 15s
+
+  rbac:
+    create: true
+
+  serviceAccount:
+    create: true
+    name: prometheus-serviceaccount
+
+  configmapReload:
+    prometheus:
+      name: prometheus-server
+      enabled: true
+
+  kubeStateMetrics:
+    enabled: true
+
+  alertmanager:
+    enabled: false
+  grafana:
+    enabled: false
