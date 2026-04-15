@@ -34,21 +34,3 @@ metaMonitoring:
     scrapeTimeout: 10s
 metricsGenerator:
   enabled: true
-  
-  # НАСТРОЙКИ ДЛЯ STORAGE (ВАЖНО!)
-  storage:
-    path: /var/tempo/wal
-    remote_write:
-      - url: http://kube-prometheus-stack-prometheus.pronetheus.svc.cluster.local:9090/api/v1/write
-        send_exemplars: true
-
-  # ВКЛЮЧАЕМ НУЖНЫЙ ПРОЦЕССОР
-  processor:
-    local_blocks:
-      filter_server_spans: false
-
-# ГЛОБАЛЬНЫЕ НАСТРОЙКИ ДЛЯ ВСЕХ ТЕНАНТОВ (КЛЮЧЕВОЙ МОМЕНТ!)
-overrides:
-  defaults:
-    metrics_generator:
-      processors: ['local-blocks']
