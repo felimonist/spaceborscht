@@ -11,3 +11,8 @@ helm upgrade --install grafana grafana-community/grafana \
   --values=dashboard-loki.yml\
   --values=dashboard-service.yml\
   --values=dashboard-tempo.yml
+
+#opentelemetry-collector
+helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+  --version 0.133.0 \
+  --values=values-otel_all.yaml

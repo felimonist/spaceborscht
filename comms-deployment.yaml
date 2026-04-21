@@ -18,6 +18,8 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: "3003"
+        instrumentation.opentelemetry.io/inject-python: "true"
+        instrumentation.opentelemetry.io/container-names: "instrumentation-space"
     spec:
       containers:
       - name: comms
@@ -31,9 +33,13 @@ spec:
         - name: PORT
           value: "3003"
         - name: OTEL_SERVICE_NAME
-          value: "spaceborscht-comms"
+          value: "comms"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://tempo-distributor.tempo.svc.cluster.local:4318/v1/traces"
+          value: "http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: http/protobuf
+        - name: LOG_TRACE_ID
+          value: "true"
         - name: ERROR_RATE_DEFAULT
           value: "0.1"
         livenessProbe:

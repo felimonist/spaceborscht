@@ -1,0 +1,161 @@
+# Режим развертывания: центральный шлюз
+mode: deployment
+
+
+# Количество реплик (можно включить HPA)
+replicaCount: 1
+
+# Настройка образа (contrib-версия для полной функциональности)
+image:
+  repository: "otel/opentelemetry-collector-k8s"
+
+presets:
+  kubernetesAttributes:
+    enabled: true
+  kubernetesEvents:
+    enabled: true
+  logsCollection:
+    enabled: true
+    includeCollectorLogs: true
+# Конфигурация коллектора
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    memory_limiter:
+      check_interval: 1s
+      limit_mib: 512
+      spike_limit_mib: 128
+    batch:
+      timeout: 1s
+      send_batch_size: 1024
+    k8sattributes:
+      extract:
+        metadata:
+          - k8s.namespace.name
+          - k8s.pod.name
+          - k8s.container.name
+          - k8s.node.name
+    resource:
+      attributes:
+        - key: deployment.environment
+          value: production
+          action: upsert
+        # Добавляем идентификатор коллектора (опционально)
+        - key: collector.id
+          from_attribute: k8s.pod.name
+          action: upsert
+
+  exporters:
+    # Трейсы → Tempo (OTLP/gRPC)
+    otlp/tempo:
+      endpoint: "http://tempo-distributor.tempo.svc.cluster.local:4317"
+      tls:
+        insecure: true
+      headers:
+        "X-Scope-OrgID": "otel"
+
+    # Логи → Loki (OTLP/HTTP)
+    otlphttp/loki:
+      endpoint: "http://loki-gateway.loki.svc.cluster.local/otlp"
+      tls:
+        insecure: true
+      headers:
+        "X-Scope-OrgID": "otel"
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, batch, resource]
+        exporters: [otlp/tempo]
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, batch, resource]
+        exporters: [otlphttp/loki]
+
+    # Метрики самого коллектора для Prometheus
+    telemetry:
+      metrics:
+        address: 0.0.0.0:8888
+
+# Порты: отключаем все стандартные, включаем только нужные
+ports:
+  # Стандартные порты чарта (отключаем)
+  metrics:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  zipkin:
+    enabled: false
+  # Наши порты
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    protocol: TCP
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    protocol: TCP
+
+service:
+  enabled: true
+  type: ClusterIP
+
+
+# Сбор метрик коллектора в Prometheus (ServiceMonitor)
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  # Если используется другой оператор (например, Prometheus Operator)
+  # namespace: monitoring
+
+# Ресурсы CPU/RAM
+resources:
+  limits:
+    cpu: 250m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Толерантности и узлы (пример для production)
+# tolerations: []
+# nodeSelector: {}
+# affinity:
+#   podAntiAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#       - weight: 100
+#         podAffinityTerm:
+#           labelSelector:
+#             matchLabels:
+#               app.kubernetes.io/name: opentelemetry-collector
+#           topologyKey: kubernetes.io/hostname
+# serviceAccount:
+#   create: true
+#   name: "otel-collector"
+# clusterRole:
+#   create: true           # Явно указываем чарту создать ClusterRole
+#   name: "otel-collector"
+#   rules:
+#     # Права для доступа к подам и нодам
+#     - apiGroups: [""]
+#       resources: ["pods", "namespaces", "nodes"]
+#       verbs: ["get", "list", "watch"]
+#     # Права для доступа к ReplicaSets (если в конфиге используется k8s.deployment.*)
+#     - apiGroups: ["apps"]
+#       resources: ["replicasets"]
+#       verbs: ["get", "list", "watch"]
+# clusterRoleBinding:
+#   create: true
+#   name: "otel-collector"

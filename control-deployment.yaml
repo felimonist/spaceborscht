@@ -18,6 +18,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: "3000"
+        instrumentation.opentelemetry.io/inject-python: "true"
     spec:
       containers:
       - name: control
@@ -31,9 +32,13 @@ spec:
         - name: PORT
           value: "3000"
         - name: OTEL_SERVICE_NAME
-          value: "spaceborscht-control"
+          value: "control"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://tempo-distributor.tempo.svc.cluster.local:4318/v1/traces"
+          value: "http://epdr3e7t5lfstl6a2eg5:4318"
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: http/protobuf
+        - name: LOG_TRACE_ID
+          value: "true"
         - name: ENGINE_URL
           value: "http://engine-service:3001"
         - name: TELEMETRY_URL

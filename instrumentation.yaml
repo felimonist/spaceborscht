@@ -1,0 +1,21 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: instrumentation-space   # Имя CR, на которое вы сошлетесь в аннотациях
+  namespace: spaceborscht # Обыскивается в том же namespace, где и приложение
+spec:
+  exporter:
+    endpoint: http://otel-collector.opentelemetry.svc.cluster.local:4318
+    # ВАЖНО: Используйте порт 4318, а не 4317, так как мы используем HTTP-протокол
+  propagators:
+    - tracecontext   # Стандарт W3C Trace Context для передачи trace_id между сервисами
+    - baggage
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+  # Конфигурация для конкретного языка (пример для Python/Java/.NET)
+  python: # или java: / dotnet:
+    env:
+      # КЛЮЧЕВОЙ МОМЕНТ: Явно указываем HTTP/Protobuf протокол
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: http/protobuf
