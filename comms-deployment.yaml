@@ -18,8 +18,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: "3003"
-        instrumentation.opentelemetry.io/inject-python: "true"
-        instrumentation.opentelemetry.io/container-names: "instrumentation-space"
+        instrumentation.opentelemetry.io/inject-nodejs: "instrumentation-space"
     spec:
       containers:
       - name: comms
@@ -34,12 +33,16 @@ spec:
           value: "3003"
         - name: OTEL_SERVICE_NAME
           value: "comms"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
-        - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: http/protobuf
-        - name: LOG_TRACE_ID
-          value: "true"
+        # - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        #   value: "http://otel-collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+        - name: OTEL_PROPAGATORS
+          value: "tracecontext,baggage"
+        # - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        #   value: http/protobuf
+        # - name: LOG_TRACE_ID
+        #   value: "true"
+        - name: OTEL_LOG_LEVEL
+          value: "debug"
         - name: ERROR_RATE_DEFAULT
           value: "0.1"
         livenessProbe:

@@ -26,6 +26,9 @@ config:
           endpoint: 0.0.0.0:4317
         http:
           endpoint: 0.0.0.0:4318
+  extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
 
   processors:
     memory_limiter:
@@ -58,8 +61,8 @@ config:
       endpoint: "http://tempo-distributor.tempo.svc.cluster.local:4317"
       tls:
         insecure: true
-      headers:
-        "X-Scope-OrgID": "otel"
+    debug:
+      verbosity: basic
 
     # Логи → Loki (OTLP/HTTP)
     otlphttp/loki:
@@ -70,11 +73,12 @@ config:
         "X-Scope-OrgID": "otel"
 
   service:
+    extensions: [health_check]
     pipelines:
       traces:
         receivers: [otlp]
         processors: [memory_limiter, k8sattributes, batch, resource]
-        exporters: [otlp/tempo]
+        exporters: [otlp/tempo, debug]
       logs:
         receivers: [otlp]
         processors: [memory_limiter, k8sattributes, batch, resource]
