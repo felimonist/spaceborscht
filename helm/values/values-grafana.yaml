@@ -14,7 +14,11 @@ datasources:
         url: http://kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090
         basicAuth: false
         isDefault: true
-        editable: false
+        editable: true
+        jsonData:
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: Tempo
 
       - name: Loki
         uid: logs
@@ -23,7 +27,7 @@ datasources:
         url: http://loki.loki.svc.cluster.local:3100
         basicAuth: false
         isDefault: false
-        editable: false
+        editable: true
         jsonData:
           httpHeaderName1: "X-Scope-OrgID"
         secureJsonData:
@@ -36,7 +40,7 @@ datasources:
         url: http://tempo-query-frontend-discovery.tempo.svc.cluster.local:3200
         basicAuth: false
         isDefault: false
-        editable: false
+        editable: true
 
 dashboardProviders:
   dashboardproviders.yaml:
@@ -50,6 +54,14 @@ dashboardProviders:
         allowUiUpdates: false
         options:
           path: /var/lib/grafana/dashboards/lesson
+      - name: service
+        orgId: 1
+        folder: "service"
+        type: file
+        disableDeletion: false
+        allowUiUpdates: false
+        options:
+          path: /var/lib/grafana/dashboards/service
       - name: loki
         orgId: 1
         folder: "practice"

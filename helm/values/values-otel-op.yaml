@@ -1,0 +1,56 @@
+replicaCount: 1
+
+# Настройки менеджера оператора
+manager:
+  # Ресурсы для пода оператора
+  resources: {}
+  #  limits:
+  #    cpu: 100m
+  #    memory: 128Mi
+  #  requests:
+  #    cpu: 100m
+  #    memory: 64Mi
+
+  # Дополнительные переменные окружения
+  extraEnvs: []
+
+  # Аргументы командной строки для менеджера
+  extraArgs: []
+
+# Настройки вебхуков (основная часть)
+admissionWebhooks:
+  create: true
+  servicePort: 443
+  failurePolicy: Fail
+  # Отключаем cert-manager
+  certManager:
+    enabled: false
+  # Включаем автоматическую генерацию самоподписанного сертификата через Helm
+  autoGenerateCert:
+    enabled: true
+    recreate: true
+    certPeriodDays: 365
+
+# Настройки ServiceAccount
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "operator"
+
+# Настройки Prometheus ServiceMonitor (опционально)
+serviceMonitor:
+  enabled: false
+
+# Безопасность контейнера (рекомендованные настройки)
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# Если вы не используете cert-manager, можно также отключить его глобально.
+# Данная опция не является стандартной, но может присутствовать в некоторых версиях чарта.
+cert-manager:
+  enabled: false
